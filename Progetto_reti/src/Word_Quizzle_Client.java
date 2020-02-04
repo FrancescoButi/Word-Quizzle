@@ -35,7 +35,7 @@ public class Word_Quizzle_Client implements Runnable {
 					Word_Quizzle_Client window = new Word_Quizzle_Client();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					System.err.println("Failed to create window");
 				}
 			}
 
@@ -63,12 +63,7 @@ public class Word_Quizzle_Client implements Runnable {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 		        JOptionPane.showMessageDialog(null, "You have disconnected from the server");
-		        //if (user != null) {
-					try {
-						Client.logout();
-					} catch (IOException e) {
-						//do nothing
-					}
+		        Client.logout();
 		       // }
             System.exit(0);
 		    }
@@ -86,13 +81,8 @@ public class Word_Quizzle_Client implements Runnable {
 				if (user.isBlank() || password.isBlank()) {
 					JOptionPane.showMessageDialog(null, "Please fill the empty fields");
 				} else {
-					try {
-						response = Client.register (user, password);
-						JOptionPane.showMessageDialog(null, response);
-						
-					} catch (RemoteException | NotBoundException e1) {
-						e1.printStackTrace();
-					}
+					response = Client.register (user, password);
+					JOptionPane.showMessageDialog(null, response);
 				}
 			}
 		});
@@ -139,8 +129,8 @@ public class Word_Quizzle_Client implements Runnable {
 					String response = Client.logout();
 					JOptionPane.showMessageDialog(null, response);
 					if (response.contains("Logout")) {System.exit (0);}
-				} catch (HeadlessException | IOException e) {
-					e.printStackTrace();
+				} catch (HeadlessException e) {
+					JOptionPane.showMessageDialog(null, "Something went wrong");
 				}
 			}
 		});
@@ -173,8 +163,8 @@ public class Word_Quizzle_Client implements Runnable {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JOptionPane.showMessageDialog(null, "List in decreasing order : " + Client.friendscore());
-				} catch (HeadlessException | IOException e2) {
-					e2.printStackTrace();
+				} catch (HeadlessException e2) {
+					JOptionPane.showMessageDialog(null, "Something went wrong");
 				}
 			}
 		});
@@ -188,8 +178,8 @@ public class Word_Quizzle_Client implements Runnable {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
 					JOptionPane.showMessageDialog(null, "Your score is: " + Client.showscore());
-				} catch (HeadlessException | IOException e) {
-					e.printStackTrace();
+				} catch (HeadlessException e) {
+					JOptionPane.showMessageDialog(null, "Something went wrong");
 				}
 			}
 		});
@@ -205,7 +195,7 @@ public class Word_Quizzle_Client implements Runnable {
 				String friend = JOptionPane.showInputDialog("What's your friend's name?");
 				try {
 					JOptionPane.showMessageDialog(null, Client.addfriend (user , friend));
-				} catch (HeadlessException | IOException e1) {
+				} catch (HeadlessException e1) {
 					JOptionPane.showMessageDialog(null, "Something went wrong");
 				}
 			}
@@ -220,8 +210,8 @@ public class Word_Quizzle_Client implements Runnable {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JOptionPane.showMessageDialog(null, "Your friend list " + Client.friendlist());
-				} catch (HeadlessException | IOException e1) {
-					e1.printStackTrace();
+				} catch (HeadlessException e1) {
+					JOptionPane.showMessageDialog(null, "Something went wrong");
 				}
 			}
 		});
@@ -332,19 +322,16 @@ public class Word_Quizzle_Client implements Runnable {
 											btnSendTraduction.addActionListener(new ActionListener() {
 												public void actionPerformed(ActionEvent e) {
 													String word = textPane.getText();
-													try {
-														String serverresponse = Client.writeword(word);
-														if (serverresponse.contains("Match ended") ) {
-															//tolgo elementi della sfida
-															lblTraduciLeParole.setText(serverresponse);
-															textPane.setVisible(false);
-															wordLabel.setVisible(false);
-															btnSendTraduction.setVisible(false);
-															btnBackToMenu.setVisible(true);
-														}
-														wordLabel.setText(serverresponse);
-													} catch (IOException e1) {
+													String serverresponse = Client.writeword(word);
+													if (serverresponse.contains("Match ended") ) {
+														//tolgo elementi della sfida
+														lblTraduciLeParole.setText(serverresponse);
+														textPane.setVisible(false);
+														wordLabel.setVisible(false);
+														btnSendTraduction.setVisible(false);
+														btnBackToMenu.setVisible(true);
 													}
+													wordLabel.setText(serverresponse);
 													
 													
 												}
@@ -357,7 +344,6 @@ public class Word_Quizzle_Client implements Runnable {
 									}
 								} catch (IOException e1) {
 									System.err.println("Failed to create or operate on socket:");
-									e1.printStackTrace();
 								}
 							}
 	
@@ -390,7 +376,7 @@ public class Word_Quizzle_Client implements Runnable {
 						}
 					}
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					System.err.println("Failed to create or operate on socket:");
 				}
 			}
 		});
@@ -436,20 +422,16 @@ public class Word_Quizzle_Client implements Runnable {
 						btnSendTraduction.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent e) {
 								String word = textPane.getText();
-								try {
-									String serverresponse = Client.writeword(word);
-									if (serverresponse.contains("Match ended") ) {
-										//tolgo elementi della sfida
-										lblTraduciLeParole.setText(serverresponse);
-										textPane.setVisible(false);
-										wordLabel.setVisible(false);
-										btnSendTraduction.setVisible(false);
-										btnBackToMenu.setVisible(true);
-									}
-									wordLabel.setText(serverresponse);
-								} catch (IOException e1) {
-									///////////////////////////////////////////
-								}	
+								String serverresponse = Client.writeword(word);
+								if (serverresponse.contains("Match ended") ) {
+									//tolgo elementi della sfida
+									lblTraduciLeParole.setText(serverresponse);
+									textPane.setVisible(false);
+									wordLabel.setVisible(false);
+									btnSendTraduction.setVisible(false);
+									btnBackToMenu.setVisible(true);
+								}
+								wordLabel.setText(serverresponse);	
 							}
 						});
 					}

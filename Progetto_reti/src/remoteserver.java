@@ -10,7 +10,7 @@ public class remoteserver extends RemoteServer implements RMIInterface{
 	
 	private static Users userlist;
 	private static final long serialVersionUID = 1L;
-	public remoteserver (Users userlist) throws IOException {
+	public remoteserver (Users userlist) {
 		this.userlist = userlist;
 		
 		//add some test users
@@ -20,7 +20,7 @@ public class remoteserver extends RemoteServer implements RMIInterface{
 	}
 	
 	
-	public int registra_utente(String name, String password) throws RemoteException {
+	public int registra_utente(String name, String password) {
 		File userfile = new File ("./user list/userfile.txt");
 		////////////////////////////////
 		User user = new User (name, password);

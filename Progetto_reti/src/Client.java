@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -30,64 +28,96 @@ public class Client {
     private static BufferedReader in_server;
     private Thread window = new  Thread (new Word_Quizzle_Client());
     
-    public static void main(String[] args) throws NotBoundException, UnknownHostException, IOException {
+    public static void main(String[] args) {
         
+    	//Inizializzo commandcode e connetto al server
     	commandCode = 9997;
-    	Socket clientSocket = new Socket("localhost", 9997);
-		out = new BufferedWriter(new OutputStreamWriter (clientSocket.getOutputStream()));
-        in_user = new BufferedReader(new InputStreamReader(System.in));
-        in_server = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-	    Thread window = new  Thread (new Word_Quizzle_Client());
-	    window.start();
-	    clientSocket.setSoTimeout(15000);
+    	try {
+			Socket clientSocket = new Socket("localhost", 9997);
+			out = new BufferedWriter(new OutputStreamWriter (clientSocket.getOutputStream()));
+	        in_user = new BufferedReader(new InputStreamReader(System.in));
+	        in_server = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+		    Thread window = new  Thread (new Word_Quizzle_Client());
+		    window.start();
+		} catch (IOException e) {
+			System.out.println("Couldn't connect to server or create window, shutting down..");
+			System.exit(1);
+		}
+		
     }
 
-	public static String register(String user, String password) throws RemoteException, NotBoundException {
+	public static String register(String user, String password){
 		RMIInterface serverObj;
 	    Remote remoteObj;
-	    Registry r = LocateRegistry.getRegistry(999);
-	    remoteObj = r.lookup("SERVER_TEST");
-	    serverObj = (RMIInterface) remoteObj;
-	    int response = serverObj.registra_utente(user, password);
+	    Registry r;
+		try {
+			// Connetto al server RMI per la registrazione
+			r = LocateRegistry.getRegistry(999);
+			remoteObj = r.lookup("SERVER_TEST");
+		    serverObj = (RMIInterface) remoteObj;
+		    int response = serverObj.registra_utente(user, password);
+		    
+			if (response == 0) {
+				return new String ("User Registered");
+			} else {
+				return new String ("User already exists");
+			}
+		} catch (RemoteException e) {
+			System.out.println("Couldn't connect to remote server, shutting down..");
+			System.exit(1);
+		} catch (NotBoundException e) {
+			System.out.println("Couldn't connect to remote server, shutting down..");
+			System.exit(1);
+		}
+		return new String ("Register failed");
 	    
-		if (response == 0) {
-			return new String ("User Registered");
-		} else {
-			return new String ("User already exists");
+	}
+
+	public static String login(String user, String pass, int port) {
+		try {
+			out.write("login " + user + " " + pass + " " + port + " " + commandCode);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			if (!response.equals(null)) System.out.println(response);
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
 		}
 	}
 
-	public static String login(String user, String pass, int port) throws IOException {
-		out.write("login " + user + " " + pass + " " + port + " " + commandCode);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		if (!response.equals(null)) System.out.println(response);
-		return response;
+	public static String addfriend(String user, String friend){
+		try {
+			out.write("aggiungi_amico " + user + " " + friend + " " + commandCode);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
+		}
+		
 	}
 
-	public static String addfriend(String user, String friend) throws IOException {
-		out.write("aggiungi_amico " + user + " " + friend + " " + commandCode);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		return response;
-	}
-
-	public static String show_match_notification(String msg) throws IOException {
+	public static String show_match_notification(String msg){
 		boolean i = showConfirmDialogWithTimeout("You've been challenged by " + msg, "warning", 10 * 1000);	
-		if (i == true) {
-			out.write("accetta" + " " + commandCode);
-			out.newLine();
-			out.flush();
-		} else {
-			//implementa rifiuta////////////////////////////////////////////////////////////
-			out.write("rifiuta" + " " + commandCode);
-			out.newLine();
-			out.flush();
+		try {
+			if (i == true) {
+				// Accetto la sfida
+				out.write("accetta" + " " + commandCode);
+				out.newLine();
+				out.flush();
+			} else {
+				// Rifiuto la sfida
+				out.write("rifiuta" + " " + commandCode);
+				out.newLine();
+				out.flush();
+			}
+			String response = in_server.readLine();
+		    return  response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
 		}
-		String response = in_server.readLine();
-        return  response;
 	}
 
 	public static String challenge(String user, String friend) {
@@ -103,49 +133,69 @@ public class Client {
 		try {
 			response = in_server.readLine().toString();
 		} catch (IOException e) {
-//			do nothing
+			return new String ("Operation failed");			
 		}
 		return response;
 	}
 
-	public static String writeword(String word) throws IOException {
-		out.write(word);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		return response;
+	public static String writeword(String word){
+		try {
+			out.write(word);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
+		}
 	}
 
-	public static String showscore() throws IOException {
-		out.write("mostrapunteggio" + " " + commandCode);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		return response;
+	public static String showscore() {
+		try {
+			out.write("mostrapunteggio" + " " + commandCode);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
+		}
 	}
 
-	public static String logout() throws IOException {
-		out.write("logout" + " " + commandCode);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		return response;
+	public static String logout() {
+		try {
+			out.write("logout" + " " + commandCode);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
+		}
 	}
 
-	public static String friendlist() throws IOException {
-		out.write("lista_amici" + " " + commandCode);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		return response;
+	public static String friendlist() {
+		try {
+			out.write("lista_amici" + " " + commandCode);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
+		}
 	}
 
-	public static String friendscore() throws IOException {
-		out.write("mostraclassifica" + " " + commandCode);
-		out.newLine();
-		out.flush();
-		String response = in_server.readLine().toString();
-		return response;
+	public static String friendscore() {
+		try {
+			out.write("mostraclassifica" + " " + commandCode);
+			out.newLine();
+			out.flush();
+			String response = in_server.readLine().toString();
+			return response;
+		} catch (IOException e) {
+			return new String ("Operation failed");			
+		}
 	}
     
 	public final static boolean showConfirmDialogWithTimeout(Object params, String title, int timeout_ms) {

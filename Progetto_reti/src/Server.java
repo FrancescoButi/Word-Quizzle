@@ -21,15 +21,21 @@ public class Server{
 	static File userfile = new File ("./user list/userfile.txt");
 	private static ArrayList <Sfida> sfide = new ArrayList <Sfida>();
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		
 		// Creo rmi per la registrazione utente
 		import_users();
-	 	remoteserver rm = new remoteserver(userlist);
-        RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(rm, 0);
-        LocateRegistry.createRegistry(999);
-        Registry r = LocateRegistry.getRegistry(999);
-        r.rebind("SERVER_TEST", stub);
+	 	try {
+			remoteserver rm = new remoteserver(userlist);
+			RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(rm, 0);
+	        LocateRegistry.createRegistry(999);
+	        Registry r = LocateRegistry.getRegistry(999);
+	        r.rebind("SERVER_TEST", stub);
+		} catch (IOException e) {
+			System.out.println("Couldn't create server for registration, shutting down..");
+			System.exit(1);
+		}
+        
 
 		//apro il server per il gioco
         setUsersOffline (userlist);
@@ -75,18 +81,23 @@ public class Server{
 	}
 	
 	
-	private static void import_users() throws JsonSyntaxException, FileNotFoundException, IOException {
+	private static void import_users() {
 	// Importo dal file la lista utenti
-			if (userfile.createNewFile()){	
-			    System.out.println("File created, no data existing");
-			} else {
-				BufferedReader br = new BufferedReader(new FileReader(userfile)); 
-				Gson gson = new GsonBuilder().create();
-				String control = br.readLine();
-				if (control != null) {
-					userlist = gson.fromJson(control, Users.class);
+			try {
+				if (userfile.createNewFile()){	
+				    System.out.println("File created, no data existing");
+				} else {
+					BufferedReader br = new BufferedReader(new FileReader(userfile)); 
+					Gson gson = new GsonBuilder().create();
+					String control = br.readLine();
+					if (control != null) {
+						userlist = gson.fromJson(control, Users.class);
+					}
+					br.close();
 				}
-				br.close();
+			} catch (JsonSyntaxException | IOException e) {
+				System.out.println("Couldn't import users, shutting down..");
+				System.exit(1);
 			}
 	}
 

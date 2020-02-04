@@ -77,6 +77,9 @@ public class Handler implements Runnable {
 
 	private int handle(String finalmsg) throws InterruptedException {
 		
+		// Non viene rimossa la clausola Throws per InterruptedException; questo permette di gestire l'eccezione
+		// nella funzione run tramite try catch in caso di errore
+		
 		try {
 			//divido il comando nelle parole
 			String[] c_command = finalmsg.split(" ");
@@ -180,6 +183,10 @@ public class Handler implements Runnable {
 				break;
 				
 					//mostra classifica
+					/* restituisco la classifica amici 
+					 * in formato ArrayList <String>
+					 * e in ordine decrescente per punteggio
+					 */
 					case "mostraclassifica":
 					User realuser = userlist.getByName(user.getName());
 					Users list = new Users();
@@ -199,6 +206,10 @@ public class Handler implements Runnable {
 				break;
 				
 				//addfriend
+				/* ricevo in input il nome dell'amico
+				 * e lo aggiungo nella lista
+				 * (viceversa nel profilo amico)
+				 */
 				case "lista_amici":
 					try {
 						Gson gson = new Gson();
@@ -212,6 +223,9 @@ public class Handler implements Runnable {
 				break;
 				
 				//sfida
+				/*implemento la sfida tra due giocatori
+				 * maggiori dettagli nella relazione
+				 */
 				case "sfida":
 					if (c_command.length > 3) {
 						System.out.println (finalmsg);
@@ -227,12 +241,12 @@ public class Handler implements Runnable {
 						out.newLine();
 						out.flush();
 					}
-	//				out.write("sfida lanciata");
-	//				out.newLine();
-	//				out.flush();
 				break;
 				
 				//mostra punteggio
+				/*restituisco il punteggio del
+				 * giocatore attuale
+				 */
 				case "mostrapunteggio":
 					try {
 						out.write (String.valueOf(userlist.getByName(user.getName()).getScore()));
@@ -246,6 +260,32 @@ public class Handler implements Runnable {
 				case "accetta":
 					for (int i = 0; i < sfide.size(); i++) {
 						if (sfide.get(i).hasPendingInvite(user.getName())) {
+							//Creo arraylist di parole e relative traduzioni
+							ArrayList <Word_Traduction> words = new ArrayList <Word_Traduction>();
+							//invio richiesta per la traduzione delle parole
+							for (int j = 0; j < 4; j++) {
+								
+								//genero casualmente parola italiana e la aggiungo alla lista
+								String word = null;
+								try {
+									word = new String (GetItWord());
+								} catch (IOException e) {
+									System.out.print("Could not get word from server");
+								}
+								Word_Traduction trial = new Word_Traduction (word);
+								words.add(trial);
+								
+								words.get(j).addword(word);
+								//invio richiesta e aggiungo la traduzione alla lista
+								try {
+									words.get(j).Add_Traductions(getalltraductions(word));
+								} catch (IOException e) {
+									System.out.print("Could not get traductions from web server for the word : ");
+									System.out.println(words.get(j).getword());
+								}		
+								
+							}
+							sfide.get(i).setWord_traductions(words);
 							sfide.get(i).setPending(0);
 							launch_match(sfide.get(i).getUser1(), sfide.get(i).getUser2(), 0);
 						}
@@ -264,6 +304,8 @@ public class Handler implements Runnable {
 				break;
 				
 				//others
+				/*gestisco comandi errati seguiti dal codice commandcode
+				 */
 				default:
 					try {
 						out.write("invalid");
@@ -288,34 +330,9 @@ public class Handler implements Runnable {
 		if (accepted == 1) {
 			//creo oggetto sfida per user 1 e 2
 			
-			//Creo arraylist di parole e relative traduzioni
-			ArrayList <Word_Traduction> words = new ArrayList <Word_Traduction>();
-			//invio richiesta per la traduzione delle parole
-			for (int i = 0; i < 4; i++) {
-				
-				//genero casualmente parola italiana e la aggiungo alla lista
-				String word = null;
-				try {
-					word = new String (GetItWord());
-				} catch (IOException e) {
-					System.out.print("Could not get word from server");
-				}
-				Word_Traduction trial = new Word_Traduction (word);
-				words.add(trial);
-				
-				words.get(i).addword(word);
-				//invio richiesta e aggiungo la traduzione alla lista
-				System.out.println(words.get(i).getword());
-				try {
-					words.get(i).Add_Traductions(getalltraductions(word));
-				} catch (IOException e) {
-					System.out.print("Could not get traductions from web server");
-				}		
-				
-			}
+			
 
 			Sfida sfida = new Sfida (user, friend);
-			sfida.setWord_traductions(words);
 			sfide.add(sfida);
 			
 			int friendport = userlist.getByName(friend).getPort();
@@ -515,6 +532,8 @@ public class Handler implements Runnable {
 	}
 
 	private synchronized void end_match(int i, int points) throws IOException {
+		// Non viene rimossa la clausola Throws; questo permette di gestire l'eccezione
+		// nella funzione handle tramite try catch in caso di errore
 		String winner = calculate_result (sfide.get(i));
 		if (winner.equalsIgnoreCase("pareggio")) {
 			userlist.getByName(sfide.get(i).getUser1()).setScore(sfide.get(i).getUser1points());
@@ -638,7 +657,9 @@ public class Handler implements Runnable {
 	
 	
 	private static String URL_builder (String word) throws IOException {
-		
+		// Non viene rimossa la clausola Throws; questo permette di gestire l'eccezione
+		// nella funzione handle tramite try catch in caso di errore
+
 		//creazione stringa url per la request
 		String traduction = "it|en";
 		String GET_URL = "https://api.mymemory.translated.net/get?q=" + word + "&langpair=" + traduction ;
@@ -649,9 +670,11 @@ public class Handler implements Runnable {
 	
 	
 	private static ArrayList <String> getalltraductions (String word) throws IOException {
+		// Non viene rimossa la clausola Throws; questo permette di gestire l'eccezione
+		// nella funzione handle tramite try catch in caso di errore
 		String result = new String (sendGET(word));
 		ArrayList <String> trad = new ArrayList <String>();
-		///////////////////
+		// Restituisco in JSON
 		Gson gson = new Gson();
 		Response founderArray = gson.fromJson(result, Response.class); 
 		int number = (founderArray.matches.length);
@@ -661,7 +684,6 @@ public class Handler implements Runnable {
 				trad.add(founderArray.matches[i].translation);
 			}
 		}
-		////////////////////
 		return trad;
 	}
 	
@@ -669,6 +691,9 @@ public class Handler implements Runnable {
 	
 	
 	private static String GetItWord() throws IOException {
+		// Non viene rimossa la clausola Throws; questo permette di gestire l'eccezione
+		// nella funzione handle tramite try catch in caso di errore
+		
 		File file = new File("./words file/parole.txt");
 		BufferedReader br = new BufferedReader(new FileReader(file));
         Random rnd = new Random();
