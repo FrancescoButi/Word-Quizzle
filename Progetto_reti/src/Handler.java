@@ -67,7 +67,7 @@ public class Handler implements Runnable {
 				} catch (IOException e) {
 					System.out.println("Something went wrong");
 					user.disconnect();
-					System.exit(1);
+					return;
 				}
 				catch (InterruptedException e) {
 					System.out.println("Client disconnected");
@@ -319,7 +319,7 @@ public class Handler implements Runnable {
 		} catch (IOException e) {
 			System.out.println("Something went wrong, disconnecting..");
 			user.disconnect();
-			System.exit(1);
+			return 1;
 		}
 		return 0;
 	}
