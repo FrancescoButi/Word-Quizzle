@@ -230,7 +230,19 @@ public class Handler implements Runnable {
 					if (c_command.length > 3) {
 						System.out.println (finalmsg);
 						if (userlist.contains(c_command [2]) && (userlist.getByName(c_command[1]).IsConnected()) && (userlist.getByName(c_command[2]).IsConnected()) &&(userlist.getByName(user.getName()).hasFriend(c_command[2]))) {
+							boolean ingame = false;
+							for (int i = 0; i < sfide.size(); i++) {
+								if ((sfide.get(i).hasPendingInvite(c_command[1]) || sfide.get(i).hasPendingInvite(c_command[2]))) {
+									ingame = true;
+								}
+							}
+						if (ingame == false) {
 							launch_match (c_command[1], c_command [2], 1);
+						} else {
+							out.write("Can't challenge " + c_command[2] + " now (check if he's online or in your friend list).");
+							out.newLine();
+							out.flush();
+						}
 						} else {
 							out.write("Can't challenge " + c_command[2] + " now (check if he's online or in your friend list).");
 							out.newLine();

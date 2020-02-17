@@ -20,7 +20,7 @@ public class remoteserver extends RemoteServer implements RMIInterface{
 	}
 	
 	
-	public int registra_utente(String name, String password) {
+	public synchronized int registra_utente(String name, String password) {
 		File userfile = new File ("./user list/userfile.txt");
 		////////////////////////////////
 		User user = new User (name, password);

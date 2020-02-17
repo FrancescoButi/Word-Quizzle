@@ -336,11 +336,9 @@ public class Word_Quizzle_Client implements Runnable {
 													
 												}
 											});
+										}else {
+											JOptionPane.showMessageDialog(null, result);
 										}
-											//showchallengeframe(frame);
-										
-	//									Sfida sfida = new Sfida (username, msg);
-	//									sfide.add(sfida);
 									}
 								} catch (IOException e1) {
 									System.err.println("Failed to create or operate on socket:");
@@ -434,6 +432,8 @@ public class Word_Quizzle_Client implements Runnable {
 								wordLabel.setText(serverresponse);	
 							}
 						});
+					} else {
+						JOptionPane.showMessageDialog(null, response);
 					}
 				}
 			}

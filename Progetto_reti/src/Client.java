@@ -73,7 +73,7 @@ public class Client {
 	    
 	}
 
-	public static String login(String user, String pass, int port) {
+	public synchronized static String login(String user, String pass, int port) {
 		try {
 			out.write("login " + user + " " + pass + " " + port + " " + commandCode);
 			out.newLine();
